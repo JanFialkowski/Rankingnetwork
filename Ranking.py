@@ -29,13 +29,29 @@ class Node:
 			Points = self.ScoreTrajectory[-1]
 		return "Score: %g, Rank: %g, Age: %g Links Last Step: %g" %(self.Score, self.Rank, self.Age, Points)
 		
-def MakeAdjacency(LinkList, t0, t1,InitialNodes):
+def MakeAdjacency(LinkList, Nodes, t0, t1,InitialNodes,sortit=False):
 	NumberofNodes = InitialNodes+t1
 	AMatrix = [[0 for i in xrange(NumberofNodes)]for j in xrange(NumberofNodes)]
-	for Link in LinkList:
-		if t0<=Link[0]<=t1:
-			AMatrix[Link[1]][Link[2]]+=1
-			AMatrix[Link[2]][Link[1]]+=1
+	if sortit == True:
+		Nodes = Nodes[:NumberofNodes]
+		# Dictionary: tell every node it's rank.
+		Scores = []
+		for Node in Nodes:
+			Score=0
+			for t in xrange(t0,t1+1):
+				Score+=Node.ScoreTrajectory[t]
+			Scores.append(Score)
+		Ranks = len(Scores) - rankdata(Scores, method="ordinal")
+		RankDic = {Name: Rank for (Name,Rank) in zip([i for i in xrange(NumberofNodes)],Ranks.astype("int",copy=False))}
+		for Link in LinkList:
+			if t0<=Link[0]<=t1:
+				AMatrix[RankDic[Link[1]]][RankDic[Link[2]]]+=1
+				AMatrix[RankDic[Link[2]]][RankDic[Link[1]]]+=1
+	else:
+		for Link in LinkList:
+			if t0<=Link[0]<=t1:
+				AMatrix[Link[1]][Link[2]]+=1
+				AMatrix[Link[2]][Link[1]]+=1
 	return AMatrix
 
 def UpdateMatrix(Nodes, Matrix):
@@ -87,7 +103,7 @@ def Update(Nodes):
 	for Thing in Nodes:
 		for index, score in enumerate(Thing.ScoreTrajectory):
 			length = len(Thing.ScoreTrajectory)
-			Thing.Score+=float(score)*((length-index)**-3)
+			Thing.Score+=float(score)*((length-index)**-10000000)
 		Thing.Score -= Thing.Age
 	Scores = [i.Score for i in Nodes]
 	Ranks = len(set(Scores)) - rankdata(Scores, method="dense")+1.0
@@ -100,13 +116,20 @@ def Update(Nodes):
 	return Nodes
 	
 def Simulation(initial=2, timesteps=100):
-	Nodes = [Node(0) for i in xrange(initial)]
+	Nodes = [Node(0) for i in xrange(initial-1)]
 	ProbM = [[0. for i in Nodes]for i in Nodes] #Vielleicht ndarray von Anfang an?
 	LinkList = []
 	LinkingTimes = []
 	UpdateTimes = []
 	MatrixTimes = []
 	for t in xrange(timesteps):
+		
+		#neuen Knoten hinzufügen
+		#fügt den letzten Startknoten mit hinzu für t=0
+		for E in ProbM:
+			E.append(0.)
+		Nodes.append(Node(t))
+		ProbM.append([0. for i in Nodes])
 		
 		#Nodes updaten
 		t1=time.clock()
@@ -122,7 +145,7 @@ def Simulation(initial=2, timesteps=100):
 		#Links auswürfeln
 		print "Fortschritt: %g" %(float(t+1)/timesteps*100)
 		t1=time.clock()
-		AddList = RollingLinks(ProbM,t,3*len(Nodes))
+		AddList = RollingLinks(ProbM,t,10*len(Nodes))
 		#LinkingTimes.append(time.clock()-t1)
 		for L in AddList:
 			a = L[1]
@@ -130,12 +153,6 @@ def Simulation(initial=2, timesteps=100):
 			Nodes[a].ScoreTrajectory[-1]+=1
 			Nodes[b].ScoreTrajectory[-1]+=1
 		LinkList.extend(AddList)
-		
-		#neuen Knoten hinzufügen
-		for E in ProbM:
-			E.append(0.)
-		Nodes.append(Node(t+1))
-		ProbM.append([0. for i in Nodes])
 		
 	#plt.show()
 	#plt.plot(LinkingTimes, label="Linking")
@@ -149,7 +166,9 @@ if __name__=="__main__":
 	LinkList, Nodes = Simulation()
 	RankoneTimes = []
 	TimetoOnes = []
-	plt.imshow(MakeAdjacency(LinkList,0,99,2), cmap="binary")
+	plt.imshow(MakeAdjacency(LinkList,Nodes,95,99,2), cmap="binary")
+	plt.show()
+	plt.imshow(MakeAdjacency(LinkList,Nodes,95,99,2,sortit=True), cmap="binary")
 	plt.show()
 	for Thing in Nodes:
 		if 1 in Thing.Trajectory:
