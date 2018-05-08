@@ -44,12 +44,12 @@ def MakeAdjacency(LinkList, Nodes, t0, t1,InitialNodes,sortit=False):
 		Ranks = len(Scores) - rankdata(Scores, method="ordinal")
 		RankDic = {Name: Rank for (Name,Rank) in zip([i for i in xrange(NumberofNodes)],Ranks.astype("int",copy=False))}
 		for Link in LinkList:
-			if t0<=Link[0]<=t1:
+			if t0<=Link[0]<t1:
 				AMatrix[RankDic[Link[1]]][RankDic[Link[2]]]+=1
 				AMatrix[RankDic[Link[2]]][RankDic[Link[1]]]+=1
 	else:
 		for Link in LinkList:
-			if t0<=Link[0]<=t1:
+			if t0<=Link[0]<t1:
 				AMatrix[Link[1]][Link[2]]+=1
 				AMatrix[Link[2]][Link[1]]+=1
 	return AMatrix
@@ -61,7 +61,7 @@ def UpdateMatrix(Nodes, Matrix):
 		i = Iter.multi_index[0]
 		j = Iter.multi_index[1]
 		#print type(Nodes[i].Rank)
-		Iter[0] = abs(Nodes[i].Rank-Nodes[j].Rank)/(Nodes[i].Rank+Nodes[j].Rank)**1.0# - (Nodes[i].Age+Nodes[j].Age)**0.8
+		Iter[0] = abs(Nodes[i].Rank-Nodes[j].Rank)/(Nodes[i].Rank+Nodes[j].Rank)**1.6# - (Nodes[i].Age+Nodes[j].Age)**0.8
 		if Iter[0] < 0:
 			Iter[0] = 0
 		Iter.iternext()
@@ -70,7 +70,7 @@ def UpdateMatrix(Nodes, Matrix):
 		ProbM = np.cumsum(ProbM)
 		ProbM /= ProbM[-1]
 		ProbM = ProbM.reshape((len(Nodes),len(Nodes)))
-	plt.imshow(ProbM, cmap = "binary")
+	#plt.imshow(ProbM, cmap = "binary")
 	plt.show
 	return ProbM.tolist()
 
@@ -103,7 +103,7 @@ def Update(Nodes):
 	for Thing in Nodes:
 		for index, score in enumerate(Thing.ScoreTrajectory):
 			length = len(Thing.ScoreTrajectory)
-			Thing.Score+=float(score)*((length-index)**-10000000)
+			Thing.Score+=float(score)*((length-index)**-10000000000)
 		Thing.Score -= Thing.Age
 	Scores = [i.Score for i in Nodes]
 	Ranks = len(set(Scores)) - rankdata(Scores, method="dense")+1.0
@@ -166,9 +166,9 @@ if __name__=="__main__":
 	LinkList, Nodes = Simulation()
 	RankoneTimes = []
 	TimetoOnes = []
-	plt.imshow(MakeAdjacency(LinkList,Nodes,95,99,2), cmap="binary")
+	#plt.imshow(np.array(MakeAdjacency(LinkList,Nodes,95,100,2)).astype("bool", copy=False), cmap="binary")
 	plt.show()
-	plt.imshow(MakeAdjacency(LinkList,Nodes,95,99,2,sortit=True), cmap="binary")
+	plt.imshow(np.array(MakeAdjacency(LinkList,Nodes,95,100,2,sortit=True)).astype("bool", copy=False), cmap="binary")
 	plt.show()
 	for Thing in Nodes:
 		if 1 in Thing.Trajectory:
@@ -179,7 +179,7 @@ if __name__=="__main__":
 	#plt.plot(Nodes[0].Trajectory)
 	#plt.plot(Nodes[50].Trajectory)
 	plt.xlabel("Time")
-	#plt.ylim(0,20)
+	plt.ylim(0,20)
 	plt.ylabel("Rank")
 	plt.legend()
 	plt.show()
