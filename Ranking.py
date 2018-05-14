@@ -13,11 +13,12 @@ import pprint
 import time
 
 class Node:
-	counter = 0.0
+	counter = 0
 	def __init__(self,t=0):
 		self.Score = 0.
 		self.Rank = Node.counter +1.
-		Node.counter += 1.
+		self.ID = Node.counter
+		Node.counter += 1
 		self.Age = 0.
 		self.Trajectory = [self.Rank for i in xrange(t+1)]
 		self.ScoreTrajectory = [0 for i in xrange(t+1)]
@@ -101,6 +102,7 @@ def RollingLinks(ProbM,t, L=20):
 	
 def Update(Nodes):
 	for Thing in Nodes:
+		Thing.Score = 0.0
 		for index, score in enumerate(Thing.ScoreTrajectory):
 			length = len(Thing.ScoreTrajectory)
 			Thing.Score+=float(score)*((length-index)**-10000000000)
@@ -115,26 +117,44 @@ def Update(Nodes):
 		Node.Age+=1
 	return Nodes
 	
-def Simulation(initial=2, timesteps=100):
+def FindNode(Nodes):
+	Rankmin = 1
+	for i, Point in enumerate(Nodes):
+		print Point
+		if Point.Rank > Rankmin:
+			Rankmin = Point.Rank
+			index = i
+	return index
+	
+def Simulation(initial=2, timesteps=100, maximum=10):
 	Nodes = [Node(0) for i in xrange(initial-1)]
 	ProbM = [[0. for i in Nodes]for i in Nodes] #Vielleicht ndarray von Anfang an?
 	LinkList = []
-	LinkingTimes = []
-	UpdateTimes = []
-	MatrixTimes = []
+	DelNodes = []
+	NodeDic = {}
+	#LinkingTimes = []
+	#UpdateTimes = []
+	#MatrixTimes = []
 	for t in xrange(timesteps):
 		
 		#neuen Knoten hinzufügen
 		#fügt den letzten Startknoten mit hinzu für t=0
-		for E in ProbM:
-			E.append(0.)
+		if len(ProbM) < maximum:
+			for E in ProbM:
+				E.append(0.)
+			ProbM.append([0. for i in xrange(len(Nodes)+1)])
 		Nodes.append(Node(t))
-		ProbM.append([0. for i in Nodes])
-		
+
 		#Nodes updaten
 		t1=time.clock()
 		Nodes = Update(Nodes)
 		#UpdateTimes.append(time.clock()-t1)
+		
+		#Node deletion
+		if len(Nodes) > maximum:
+			Index = FindNode(Nodes)
+			DelNodes.append(Nodes[Index])
+			del Nodes[Index]
 		
 		#Matrix berechnen
 		t1=time.clock()
@@ -148,11 +168,11 @@ def Simulation(initial=2, timesteps=100):
 		AddList = RollingLinks(ProbM,t,10*len(Nodes))
 		#LinkingTimes.append(time.clock()-t1)
 		for L in AddList:
-			a = L[1]
-			b = L[2]
-			Nodes[a].ScoreTrajectory[-1]+=1
-			Nodes[b].ScoreTrajectory[-1]+=1
-		LinkList.extend(AddList)
+			Nodes[L[1]].ScoreTrajectory[-1]+=1
+			Nodes[L[2]].ScoreTrajectory[-1]+=1
+			L[1]=Nodes[L[1]].ID
+			L[2]=Nodes[L[2]].ID
+			LinkList.append(L)
 		
 	#plt.show()
 	#plt.plot(LinkingTimes, label="Linking")
@@ -160,10 +180,20 @@ def Simulation(initial=2, timesteps=100):
 	#plt.plot(MatrixTimes, label="Matrix")
 	#plt.legend()
 	#plt.show()
+	for Point in DelNodes:
+		Zeroes = [0 for i in xrange(timesteps + 1 - len(Point.ScoreTrajectory))]
+		Point.ScoreTrajectory.extend(Zeroes)
+	Nodes = DelNodes + Nodes
+	for i, Point in enumerate(Nodes):
+		NodeDic[Point.ID]=i
+	for Link in LinkList:
+		Link[1] = NodeDic[Link[1]]
+		Link[2] = NodeDic[Link[2]]
 	return LinkList, Nodes
 	
 if __name__=="__main__":
 	LinkList, Nodes = Simulation()
+	
 	RankoneTimes = []
 	TimetoOnes = []
 	#plt.imshow(np.array(MakeAdjacency(LinkList,Nodes,95,100,2)).astype("bool", copy=False), cmap="binary")
