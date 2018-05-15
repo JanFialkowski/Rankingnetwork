@@ -192,19 +192,17 @@ def Simulation(initial=5, timesteps=100, maximum=1000):
 	
 if __name__=="__main__":
 	LinkList, Nodes = Simulation()
-	Dupes = [0 for i in Nodes[-1].Trajectory]
-	DifferentRanks = []
-	for t in xrange(len(Nodes[-1].Trajectory)):
-		for Node in Nodes:
-			try:
-				Dupes[t]+=1
-				DifferentRanks.index(Node.Trajectory[t])
-			except ValueError:
-				DifferentRanks.append(Node.Trajectory[t])
-				Dupes[t]-=1
-	plt.plot(Dupes, label="number of duplicate ranks every timestep")
-	plt.legend()
-	plt.show()
+#	Dupes = [0 for i in Nodes[-1].Trajectory]
+#	for t in xrange(len(Nodes[-1].Trajectory)):
+#		DifferentRanks = []
+#		for Node in Nodes:
+#			if Node.Trajectory[t] in DifferentRanks:
+#				Dupes[t]+=1
+#			else:
+#				DifferentRanks.append(Node.Trajectory[t])
+#	plt.plot(Dupes, label="number of duplicate ranks every timestep")
+#	plt.legend()
+#	plt.show()
 	RankoneTimes = []
 	TimetoOnes = []
 	#plt.imshow(np.array(MakeAdjacency(LinkList,Nodes,95,100,5)).astype("bool", copy=False), cmap="binary")
