@@ -20,10 +20,9 @@ class Node:
 		self.ID = Node.counter
 		Node.counter += 1
 		self.Age = 0.
-		self.Trajectory = [self.Rank for i in xrange(t+1)]
-		self.ScoreTrajectory = [0 for i in xrange(t+1)]
+		self.Trajectory = [self.Rank for i in xrange(t)]
+		self.ScoreTrajectory = [0 for i in xrange(t)]
 	def __str__(self):
-		Points = 100
 		if len(self.ScoreTrajectory) == 1:
 			Points = self.ScoreTrajectory[0]
 		elif len(self.ScoreTrajectory) > 1:
@@ -39,7 +38,7 @@ def MakeAdjacency(LinkList, Nodes, t0, t1,InitialNodes,sortit=False):
 		Scores = []
 		for Node in Nodes:
 			Score=0
-			for t in xrange(t0,t1+1):
+			for t in xrange(t0,t1):
 				Score+=Node.ScoreTrajectory[t]
 			Scores.append(Score)
 		Ranks = len(Scores) - rankdata(Scores, method="ordinal")
@@ -77,7 +76,7 @@ def UpdateMatrix(Nodes, Matrix):
 
 def RollingLinks(ProbM,t, L=20):
 	ContactList=[]
-	Sum = sum([sum(k) for k in ProbM])
+	Sum = ProbM[-1][-1]
 	while L!=0:
 		L-=1
 		i=0
@@ -108,7 +107,7 @@ def Update(Nodes):
 			Thing.Score+=float(score)*((length-index)**-10000000000)
 		Thing.Score -= Thing.Age
 	Scores = [i.Score for i in Nodes]
-	Ranks = len(set(Scores)) - rankdata(Scores, method="dense")+1.0
+	Ranks = len(Scores) - rankdata(Scores, method="ordinal")+1.0
 	for Node in Nodes:
 		Node.Rank = Ranks[Nodes.index(Node)].item()
 		#print Node
@@ -126,7 +125,7 @@ def FindNode(Nodes):
 			index = i
 	return index
 	
-def Simulation(initial=2, timesteps=100, maximum=10):
+def Simulation(initial=5, timesteps=100, maximum=1000):
 	Nodes = [Node(0) for i in xrange(initial-1)]
 	ProbM = [[0. for i in Nodes]for i in Nodes] #Vielleicht ndarray von Anfang an?
 	LinkList = []
@@ -136,6 +135,7 @@ def Simulation(initial=2, timesteps=100, maximum=10):
 	#UpdateTimes = []
 	#MatrixTimes = []
 	for t in xrange(timesteps):
+		print "Fortschritt: %g" %(float(t+1)/timesteps*100)
 		
 		#neuen Knoten hinzufügen
 		#fügt den letzten Startknoten mit hinzu für t=0
@@ -151,7 +151,7 @@ def Simulation(initial=2, timesteps=100, maximum=10):
 		#UpdateTimes.append(time.clock()-t1)
 		
 		#Node deletion
-		if len(Nodes) > maximum:
+		while len(Nodes) > maximum:
 			Index = FindNode(Nodes)
 			DelNodes.append(Nodes[Index])
 			del Nodes[Index]
@@ -163,9 +163,8 @@ def Simulation(initial=2, timesteps=100, maximum=10):
 		#pprint.pprint(ProbM)
 		
 		#Links auswürfeln
-		print "Fortschritt: %g" %(float(t+1)/timesteps*100)
 		t1=time.clock()
-		AddList = RollingLinks(ProbM,t,10*len(Nodes))
+		AddList = RollingLinks(ProbM,t,1*len(Nodes))
 		#LinkingTimes.append(time.clock()-t1)
 		for L in AddList:
 			Nodes[L[1]].ScoreTrajectory[-1]+=1
@@ -193,12 +192,24 @@ def Simulation(initial=2, timesteps=100, maximum=10):
 	
 if __name__=="__main__":
 	LinkList, Nodes = Simulation()
-	
+	Dupes = [0 for i in Nodes[-1].Trajectory]
+	DifferentRanks = []
+	for t in xrange(len(Nodes[-1].Trajectory)):
+		for Node in Nodes:
+			try:
+				Dupes[t]+=1
+				DifferentRanks.index(Node.Trajectory[t])
+			except ValueError:
+				DifferentRanks.append(Node.Trajectory[t])
+				Dupes[t]-=1
+	plt.plot(Dupes, label="number of duplicate ranks every timestep")
+	plt.legend()
+	plt.show()
 	RankoneTimes = []
 	TimetoOnes = []
-	#plt.imshow(np.array(MakeAdjacency(LinkList,Nodes,95,100,2)).astype("bool", copy=False), cmap="binary")
+	#plt.imshow(np.array(MakeAdjacency(LinkList,Nodes,95,100,5)).astype("bool", copy=False), cmap="binary")
 	plt.show()
-	plt.imshow(np.array(MakeAdjacency(LinkList,Nodes,95,100,2,sortit=True)).astype("bool", copy=False), cmap="binary")
+	plt.imshow(np.array(MakeAdjacency(LinkList,Nodes,95,100,5,sortit=True)).astype("bool", copy=False), cmap="binary")
 	plt.show()
 	for Thing in Nodes:
 		if 1 in Thing.Trajectory:
@@ -209,12 +220,13 @@ if __name__=="__main__":
 	#plt.plot(Nodes[0].Trajectory)
 	#plt.plot(Nodes[50].Trajectory)
 	plt.xlabel("Time")
-	plt.ylim(0,20)
+	#plt.ylim(0,20)
 	plt.ylabel("Rank")
 	plt.legend()
 	plt.show()
 	for Thing in Nodes:
 		plt.plot(Thing.ScoreTrajectory)
+	plt.xlim(0,3)
 	plt.show()
 	plt.hist(RankoneTimes, label = "Time spent at Rank one")
 	plt.ylabel("Time spent at Rank one")
