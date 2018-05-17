@@ -27,21 +27,35 @@ def FindMin(Probs):
             MinProbs=i
     return MinProbs
 
-Probs = BuildProbas(100,1,1.6)
-PlotProbs(Probs, Plotlabel="100 Knoten")
-Probs = BuildProbas(100,100,100.6)
-PlotProbs(Probs, Plotlabel = "10000 Knoten")
-overx = np.array([1/(i+1)**0.6 for i in xrange(100)])
-overx /= overx.sum()
-plt.plot([i+1 for i in xrange(100)],overx, label="x**-0.6")
-plt.legend()
-plt.show()
-
-#for i in xrange(6):
-#    Probs = BuildProbas(100,1,1+i/5.0)
-#    PlotProbs(Probs, Plotlabel="1 und %g"%(1+i/5.0))
+#Probs = BuildProbas(100,1,1.6)
+#PlotProbs(Probs, Plotlabel="100 Knoten")
+#Probs = BuildProbas(100,100,100.6)
+#PlotProbs(Probs, Plotlabel = "10000 Knoten")
+#overx = np.array([1/(i+1)**0.6 for i in xrange(100)])
+#overx /= overx.sum()
+#plt.plot([i+1 for i in xrange(100)],overx, label="x**-0.6")
 #plt.legend()
 #plt.show()
+
+Iss = range(51)
+MinRanks = []
+Xss = []
+for i in Iss:
+    Xss.append(i/25.0)
+    Probs = BuildProbas(100,1,1+i/25.0)
+    MinRanks.append(FindMin(Probs))
+plt.plot(Xss,MinRanks,label="100 Nodes")
+MinRanks = []
+Xss = []
+for i in Iss:
+    Xss.append(i/25.0)
+    Probs = BuildProbas(1000,1,1+i/25.0)
+    MinRanks.append(FindMin(Probs))
+plt.plot(Xss,np.array(MinRanks)/10,label="1000 Nodes")
+plt.xlabel("Difference of the exponents")
+plt.ylabel("Node with lowest probability")
+plt.legend()
+plt.show()
 
 #to plot minima
 #ass=[i/10.0 for i in xrange(1001)]
