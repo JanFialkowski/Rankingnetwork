@@ -29,11 +29,14 @@ class Node:
 			Points = self.ScoreTrajectory[-1]
 		return "Score: %g, Rank: %g, Age: %g Links Last Step: %g" %(self.Score, self.Rank, self.Age, Points)
 		
-def MakeAdjacency(LinkList, Nodes, t0, t1,InitialNodes,sortit=False):
+def MakeAdjacency(LinkList, Nodes, t0, t1, InitialNodes, sortit=False, maximum = False):
 	NumberofNodes = InitialNodes+t1
+	if maximum:
+		NumberofNodes = maximum + t1-t0
+		Maxed = True
 	AMatrix = [[0 for i in xrange(NumberofNodes)]for j in xrange(NumberofNodes)]
 	if sortit == True:
-		Nodes = Nodes[:NumberofNodes]
+		Nodes = Nodes[InitialNodes+t1-NumberofNodes : InitialNodes+t1]
 		# Dictionary: tell every node it's rank.
 		Scores = []
 		for Node in Nodes:
@@ -42,16 +45,22 @@ def MakeAdjacency(LinkList, Nodes, t0, t1,InitialNodes,sortit=False):
 				Score+=Node.ScoreTrajectory[t]
 			Scores.append(Score)
 		Ranks = len(Scores) - rankdata(Scores, method="ordinal")
-		RankDic = {Name: Rank for (Name,Rank) in zip([i for i in xrange(NumberofNodes)],Ranks.astype("int",copy=False))}
+		RankDic = {Name: Rank for (Name,Rank) in zip([i for i in xrange(InitialNodes+t1-NumberofNodes, InitialNodes+t1)],Ranks.astype("int",copy=False))}
+		print RankDic
 		for Link in LinkList:
 			if t0<=Link[0]<t1:
-				AMatrix[RankDic[Link[1]]][RankDic[Link[2]]]+=1
-				AMatrix[RankDic[Link[2]]][RankDic[Link[1]]]+=1
+				Firstlink = Link[1]-InitialNodes+t1-NumberofNodes
+				Secondlink = Link[2]-InitialNodes+t1-NumberofNodes
+				print Firstlink, Secondlink
+				AMatrix[RankDic[Firstlink]][RankDic[Secondlink]]+=1
+				AMatrix[RankDic[Secondlink]][RankDic[Firstlink]]+=1
 	else:
 		for Link in LinkList:
 			if t0<=Link[0]<t1:
-				AMatrix[Link[1]][Link[2]]+=1
-				AMatrix[Link[2]][Link[1]]+=1
+				Firstlink = Link[1]-InitialNodes+t1-NumberofNodes
+				Secondlink = Link[2]-InitialNodes+t1-NumberofNodes
+				AMatrix[Firstlink][Secondlink]+=1
+				AMatrix[Secondlink][Firstlink]+=1
 	return AMatrix
 
 def UpdateMatrix(Nodes, Matrix):
@@ -61,7 +70,7 @@ def UpdateMatrix(Nodes, Matrix):
 		i = Iter.multi_index[0]
 		j = Iter.multi_index[1]
 		#print type(Nodes[i].Rank)
-		Iter[0] = abs(Nodes[i].Rank-Nodes[j].Rank)/(Nodes[i].Rank+Nodes[j].Rank)**1.6# - (Nodes[i].Age+Nodes[j].Age)**0.8
+		Iter[0] = abs(Nodes[i].Rank-Nodes[j].Rank)**2.0/(Nodes[i].Rank+Nodes[j].Rank)**2.4# - (Nodes[i].Age+Nodes[j].Age)**0.8
 		if Iter[0] < 0:
 			Iter[0] = 0
 		Iter.iternext()
@@ -104,7 +113,7 @@ def Update(Nodes):
 		Thing.Score = 0.0
 		for index, score in enumerate(Thing.ScoreTrajectory):
 			length = len(Thing.ScoreTrajectory)
-			Thing.Score+=float(score)*((length-index)**-10000000000)
+			Thing.Score+=float(score)*((length-index)**-1000000)
 		Thing.Score -= Thing.Age
 	Scores = [i.Score for i in Nodes]
 	Ranks = len(Scores) - rankdata(Scores, method="ordinal")+1.0
@@ -119,13 +128,13 @@ def Update(Nodes):
 def FindNode(Nodes):
 	Rankmin = 1
 	for i, Point in enumerate(Nodes):
-		print Point
+		#print Point
 		if Point.Rank > Rankmin:
 			Rankmin = Point.Rank
 			index = i
 	return index
 	
-def Simulation(initial=5, timesteps=100, maximum=1000):
+def Simulation(initial=5, timesteps=100, maximum=50):
 	Nodes = [Node(0) for i in xrange(initial-1)]
 	ProbM = [[0. for i in Nodes]for i in Nodes] #Vielleicht ndarray von Anfang an?
 	LinkList = []
@@ -164,7 +173,7 @@ def Simulation(initial=5, timesteps=100, maximum=1000):
 		
 		#Links auswürfeln
 		t1=time.clock()
-		AddList = RollingLinks(ProbM,t,1*len(Nodes))
+		AddList = RollingLinks(ProbM,t,10*len(Nodes))
 		#LinkingTimes.append(time.clock()-t1)
 		for L in AddList:
 			Nodes[L[1]].ScoreTrajectory[-1]+=1
@@ -207,7 +216,7 @@ if __name__=="__main__":
 	TimetoOnes = []
 	#plt.imshow(np.array(MakeAdjacency(LinkList,Nodes,95,100,5)).astype("bool", copy=False), cmap="binary")
 	plt.show()
-	plt.imshow(np.array(MakeAdjacency(LinkList,Nodes,95,100,5,sortit=True)).astype("bool", copy=False), cmap="binary")
+	plt.imshow(np.array(MakeAdjacency(LinkList,Nodes,95,100,5,sortit=True, maximum=False)).astype("bool", copy=False), cmap="binary")
 	plt.show()
 	for Thing in Nodes:
 		if 1 in Thing.Trajectory:
