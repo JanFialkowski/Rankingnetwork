@@ -15,17 +15,14 @@ def BuildProbas(Size=100, a=1, b=1):
 
 def PlotProbs(Probs, Plotlabel = ""):
     CumProbs = Probs
-    Xvalues= [float(i+1)/len(CumProbs)*100 for i in xrange(len(CumProbs))]
+    Xvalues= [float(i)/len(CumProbs)*100 for i in xrange(len(CumProbs))]
     CumProbs *= float(len(CumProbs))/100.0
     plt.plot(Xvalues,CumProbs, label = Plotlabel)
     return
 
 def FindMin(Probs):
-    MinProbs = 0
-    for i in xrange(len(Probs)):
-        if Probs[i]<Probs[MinProbs]:
-            MinProbs=i
-    return MinProbs
+    return Probs.argmin()+1
+
 
 #Probs = BuildProbas(100,1,1.6)
 #PlotProbs(Probs, Plotlabel="100 Knoten")
@@ -44,14 +41,14 @@ for i in Iss:
     Xss.append(i/25.0)
     Probs = BuildProbas(100,1,1+i/25.0)
     MinRanks.append(FindMin(Probs))
-plt.plot(Xss,MinRanks,label="100 Nodes")
+plt.plot(Xss,MinRanks,label="a=1")
 MinRanks = []
 Xss = []
 for i in Iss:
     Xss.append(i/25.0)
-    Probs = BuildProbas(1000,1,1+i/25.0)
+    Probs = BuildProbas(100,6,6+i/25.0)
     MinRanks.append(FindMin(Probs))
-plt.plot(Xss,np.array(MinRanks)/10,label="1000 Nodes")
+plt.plot(Xss,np.array(MinRanks),label="a=6")
 plt.xlabel("Difference of the exponents")
 plt.ylabel("Node with lowest probability")
 plt.legend()

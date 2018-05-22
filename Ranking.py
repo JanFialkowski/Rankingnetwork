@@ -9,7 +9,7 @@ import numpy as np
 from scipy.stats import rankdata
 import matplotlib.pyplot as plt
 #import pprint
-#import graph_tool.all as gt
+import graph_tool.all as gt
 import time
 
 class Node:
@@ -46,12 +46,12 @@ def MakeAdjacency(LinkList, Nodes, t0, t1, InitialNodes, sortit=False, maximum =
 			Scores.append(Score)
 		Ranks = len(Scores) - rankdata(Scores, method="ordinal")
 		RankDic = {Name: Rank for (Name,Rank) in zip([i for i in xrange(InitialNodes+t1-1-NumberofNodes, InitialNodes+t1)],Ranks.astype("int",copy=False))}
-		print RankDic
+		#print RankDic
 		for Link in LinkList:
 			if t0<=Link[0]<t1:
 				Firstlink = Link[1]#-(InitialNodes+t1-NumberofNodes)
 				Secondlink = Link[2]#-(InitialNodes+t1-NumberofNodes)
-				print Firstlink, Secondlink
+				#print Firstlink, Secondlink
 				AMatrix[RankDic[Firstlink]][RankDic[Secondlink]]+=1
 				AMatrix[RankDic[Secondlink]][RankDic[Firstlink]]+=1
 	else:
@@ -59,7 +59,7 @@ def MakeAdjacency(LinkList, Nodes, t0, t1, InitialNodes, sortit=False, maximum =
 			if t0<=Link[0]<t1:
 				Firstlink = Link[1]-(InitialNodes+t1-NumberofNodes)
 				Secondlink = Link[2]-(InitialNodes+t1-NumberofNodes)
-				print Firstlink, Secondlink
+				#print Firstlink, Secondlink
 				AMatrix[Firstlink][Secondlink]+=1
 				AMatrix[Secondlink][Firstlink]+=1
 	return AMatrix
@@ -71,7 +71,7 @@ def UpdateMatrix(Nodes, Matrix):
 		i = Iter.multi_index[0]
 		j = Iter.multi_index[1]
 		#print type(Nodes[i].Rank)
-		Iter[0] = abs(Nodes[i].Rank-Nodes[j].Rank)**2.0/(Nodes[i].Rank+Nodes[j].Rank)**2.4# - (Nodes[i].Age+Nodes[j].Age)**0.8
+		Iter[0] = abs(Nodes[i].Rank-Nodes[j].Rank)**2.0/(Nodes[i].Rank+Nodes[j].Rank)**2.6# - (Nodes[i].Age+Nodes[j].Age)**0.8
 		if Iter[0] < 0:
 			Iter[0] = 0
 		Iter.iternext()
@@ -114,7 +114,7 @@ def Update(Nodes):
 		Thing.Score = 0.0
 		for index, score in enumerate(Thing.ScoreTrajectory):
 			length = len(Thing.ScoreTrajectory)
-			Thing.Score+=float(score)*((length-index)**-1000000)
+			Thing.Score+=float(score)*((length-index)**-1)
 		Thing.Score -= Thing.Age
 	Scores = [i.Score for i in Nodes]
 	Ranks = len(Scores) - rankdata(Scores, method="ordinal")+1.0
@@ -135,7 +135,7 @@ def FindNode(Nodes):
 			index = i
 	return index
 	
-def Simulation(initial=5, timesteps=100, maximum=50):
+def Simulation(initial=5, timesteps=100, maximum=10000):
 	Nodes = [Node(0) for i in xrange(initial-1)]
 	ProbM = [[0. for i in Nodes]for i in Nodes] #Vielleicht ndarray von Anfang an?
 	LinkList = []
@@ -174,7 +174,7 @@ def Simulation(initial=5, timesteps=100, maximum=50):
 		
 		#Links auswürfeln
 		t1=time.clock()
-		AddList = RollingLinks(ProbM,t,10*len(Nodes))
+		AddList = RollingLinks(ProbM,t,2*len(Nodes))
 		#LinkingTimes.append(time.clock()-t1)
 		for L in AddList:
 			Nodes[L[1]].ScoreTrajectory[-1]+=1
@@ -216,7 +216,7 @@ if __name__=="__main__":
 	RankoneTimes = []
 	TimetoOnes = []
 	plt.show()
-	plt.imshow(np.array(MakeAdjacency(LinkList, Nodes, 95, 100, 5,sortit=False, maximum=50)), cmap = "binary", interpolation = "none")
+	#plt.imshow(np.array(MakeAdjacency(LinkList, Nodes, 95, 100, 5,sortit=False, maximum=50)), cmap = "binary", interpolation = "none")
 	plt.show()
 	plt.show()
 	for Thing in Nodes:
@@ -238,7 +238,12 @@ if __name__=="__main__":
 	plt.hist(TimetoOnes, label = "Time it takes to reach Rank one")
 	plt.ylabel("Time it takes to reach Rank one")
 	plt.show()
-	#Graph=gt.Graph(directed=False)
-	#EdgeList = [Edge[1:] for Edge in LinkList if Edge[0] in [90,91,92,93,94,95,96]]
-	#Graph.add_edge_list(EdgeList)
-	#Graph.save("Ranking90week.graphml")
+	plt.imshow(np.array(MakeAdjacency(LinkList, Nodes, 98, 100, 5,sortit=False, maximum=False)), cmap = "binary", interpolation = "none")
+	plt.show()
+	Graph=gt.Graph(directed=False)
+	EdgeList = [Edge[1:] for Edge in LinkList if 99 <= Edge[0] < 100]
+	Graph.add_edge_list(EdgeList)
+	deg = Graph.degree_property_map("out")
+	deg.a = 4*(np.sqrt(deg.a)*0.5+0.4)+10
+	pos = gt.arf_layout(Graph)
+	gt.graph_draw(Graph, vertex_text=Graph.vertex_index, output = "98to100_2Links_2and26.png", vertex_size = deg, output_size = (1000,1000), vertex_text_position = -0.5)
