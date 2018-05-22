@@ -8,7 +8,7 @@ Created on Wed Mar 14 15:07:17 2018
 import numpy as np
 from scipy.stats import rankdata
 import matplotlib.pyplot as plt
-import pprint
+#import pprint
 #import graph_tool.all as gt
 import time
 
@@ -30,13 +30,13 @@ class Node:
 		return "Score: %g, Rank: %g, Age: %g Links Last Step: %g" %(self.Score, self.Rank, self.Age, Points)
 		
 def MakeAdjacency(LinkList, Nodes, t0, t1, InitialNodes, sortit=False, maximum = False):
-	NumberofNodes = InitialNodes+t1
-	if maximum:
-		NumberofNodes = maximum + t1-t0
-		Maxed = True
+	NumberofNodes = InitialNodes+t1 -1
+	if maximum and InitialNodes+t0>=maximum:
+		NumberofNodes = maximum + t1-t0-1 #every step adds a node, -1 because t1 is exclusive
+		#Maxed = True
 	AMatrix = [[0 for i in xrange(NumberofNodes)]for j in xrange(NumberofNodes)]
 	if sortit == True:
-		Nodes = Nodes[InitialNodes+t1-NumberofNodes : InitialNodes+t1]
+		Nodes = Nodes[InitialNodes+t1-1-NumberofNodes : InitialNodes+t1] #keine -1, weil der Splice schon exclusive ist.
 		# Dictionary: tell every node it's rank.
 		Scores = []
 		for Node in Nodes:
@@ -45,20 +45,21 @@ def MakeAdjacency(LinkList, Nodes, t0, t1, InitialNodes, sortit=False, maximum =
 				Score+=Node.ScoreTrajectory[t]
 			Scores.append(Score)
 		Ranks = len(Scores) - rankdata(Scores, method="ordinal")
-		RankDic = {Name: Rank for (Name,Rank) in zip([i for i in xrange(InitialNodes+t1-NumberofNodes, InitialNodes+t1)],Ranks.astype("int",copy=False))}
+		RankDic = {Name: Rank for (Name,Rank) in zip([i for i in xrange(InitialNodes+t1-1-NumberofNodes, InitialNodes+t1)],Ranks.astype("int",copy=False))}
 		print RankDic
 		for Link in LinkList:
 			if t0<=Link[0]<t1:
-				Firstlink = Link[1]-InitialNodes+t1-NumberofNodes
-				Secondlink = Link[2]-InitialNodes+t1-NumberofNodes
+				Firstlink = Link[1]#-(InitialNodes+t1-NumberofNodes)
+				Secondlink = Link[2]#-(InitialNodes+t1-NumberofNodes)
 				print Firstlink, Secondlink
 				AMatrix[RankDic[Firstlink]][RankDic[Secondlink]]+=1
 				AMatrix[RankDic[Secondlink]][RankDic[Firstlink]]+=1
 	else:
 		for Link in LinkList:
 			if t0<=Link[0]<t1:
-				Firstlink = Link[1]-InitialNodes+t1-NumberofNodes
-				Secondlink = Link[2]-InitialNodes+t1-NumberofNodes
+				Firstlink = Link[1]-(InitialNodes+t1-NumberofNodes)
+				Secondlink = Link[2]-(InitialNodes+t1-NumberofNodes)
+				print Firstlink, Secondlink
 				AMatrix[Firstlink][Secondlink]+=1
 				AMatrix[Secondlink][Firstlink]+=1
 	return AMatrix
@@ -214,18 +215,15 @@ if __name__=="__main__":
 #	plt.show()
 	RankoneTimes = []
 	TimetoOnes = []
-	#plt.imshow(np.array(MakeAdjacency(LinkList,Nodes,95,100,5)).astype("bool", copy=False), cmap="binary")
 	plt.show()
-	plt.imshow(np.array(MakeAdjacency(LinkList,Nodes,95,100,5,sortit=True, maximum=False)).astype("bool", copy=False), cmap="binary")
+	plt.imshow(np.array(MakeAdjacency(LinkList, Nodes, 95, 100, 5,sortit=False, maximum=50)), cmap = "binary", interpolation = "none")
+	plt.show()
 	plt.show()
 	for Thing in Nodes:
 		if 1 in Thing.Trajectory:
-			plt.plot(Thing.Trajectory, label=Nodes.index(Thing))
+			plt.plot(Thing.Trajectory, label = Thing.ID)
 			RankoneTimes.append(Thing.Trajectory.count(1))
 			TimetoOnes.append(Thing.Trajectory.index(1)-(len(Thing.Trajectory)-Thing.Age-1))
-		#plt.plot(Thing.Trajectory)
-	#plt.plot(Nodes[0].Trajectory)
-	#plt.plot(Nodes[50].Trajectory)
 	plt.xlabel("Time")
 	#plt.ylim(0,20)
 	plt.ylabel("Rank")
@@ -233,7 +231,6 @@ if __name__=="__main__":
 	plt.show()
 	for Thing in Nodes:
 		plt.plot(Thing.ScoreTrajectory)
-	plt.xlim(0,3)
 	plt.show()
 	plt.hist(RankoneTimes, label = "Time spent at Rank one")
 	plt.ylabel("Time spent at Rank one")
