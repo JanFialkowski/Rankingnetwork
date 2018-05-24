@@ -28,6 +28,11 @@ class Node:
 		elif len(self.ScoreTrajectory) > 1:
 			Points = self.ScoreTrajectory[-1]
 		return "Score: %g, Rank: %g, Age: %g Links Last Step: %g" %(self.Score, self.Rank, self.Age, Points)
+	def CalcScore(self, e = -1.):
+		self.Score = 0.0
+		for i in xrange(int(self.Age)):
+			self.Score += (self.ScoreTrajectory[-(i+1)] - (self.Age))*(i+1)**e
+		#self.Score -= self.Age
 		
 def MakeAdjacency(LinkList, Nodes, t0, t1, InitialNodes, sortit=False, maximum = False):
 	NumberofNodes = InitialNodes+t1 -1
@@ -64,14 +69,14 @@ def MakeAdjacency(LinkList, Nodes, t0, t1, InitialNodes, sortit=False, maximum =
 				AMatrix[Secondlink][Firstlink]+=1
 	return AMatrix
 
-def UpdateMatrix(Nodes, Matrix):
+def UpdateMatrix(Nodes, Matrix, a = 2.0, b = 2.6):
 	ProbM = np.array(Matrix)
 	Iter = np.nditer(ProbM, flags=["multi_index"], op_flags=["writeonly"])
 	while not Iter.finished:
 		i = Iter.multi_index[0]
 		j = Iter.multi_index[1]
 		#print type(Nodes[i].Rank)
-		Iter[0] = abs(Nodes[i].Rank-Nodes[j].Rank)**2.0/(Nodes[i].Rank+Nodes[j].Rank)**2.6# - (Nodes[i].Age+Nodes[j].Age)**0.8
+		Iter[0] = abs(Nodes[i].Rank-Nodes[j].Rank)**a/(Nodes[i].Rank+Nodes[j].Rank)**b# - (Nodes[i].Age+Nodes[j].Age)**0.8
 		if Iter[0] < 0:
 			Iter[0] = 0
 		Iter.iternext()
@@ -111,11 +116,14 @@ def RollingLinks(ProbM,t, L=20):
 	
 def Update(Nodes):
 	for Thing in Nodes:
+		"""
 		Thing.Score = 0.0
 		for index, score in enumerate(Thing.ScoreTrajectory):
 			length = len(Thing.ScoreTrajectory)
 			Thing.Score+=float(score)*((length-index)**-1)
 		Thing.Score -= Thing.Age
+		"""
+		Thing.CalcScore()
 	Scores = [i.Score for i in Nodes]
 	Ranks = len(Scores) - rankdata(Scores, method="ordinal")+1.0
 	for Node in Nodes:
@@ -174,7 +182,7 @@ def Simulation(initial=5, timesteps=100, maximum=10000):
 		
 		#Links auswürfeln
 		t1=time.clock()
-		AddList = RollingLinks(ProbM,t,2*len(Nodes))
+		AddList = RollingLinks(ProbM,t,10*len(Nodes))
 		#LinkingTimes.append(time.clock()-t1)
 		for L in AddList:
 			Nodes[L[1]].ScoreTrajectory[-1]+=1
