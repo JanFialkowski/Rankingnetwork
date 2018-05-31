@@ -14,6 +14,11 @@ for Graph in Graphs:
 		RunningI += 1
 Scores = [[] for i in LabeltoI.keys()]
 
+for Graph in Graphs:
+	Matrix = gt.adjacency(Graph, weight = Graph.ep.weight)
+	for i in xrange(len(Graph.get_vertices())):
+		Scores[LabeltoI[Graph.vp.label[i]]].append(Matrix[i].sum()/2.)
+print Scores
 """
 EperV = [gt.scalar_assortativity(Graph, "total") for Graph in Graphs]
 Values = [Thing[0] for Thing in EperV]
