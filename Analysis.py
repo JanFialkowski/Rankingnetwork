@@ -6,7 +6,15 @@ import scipy.stats as sp
 
 filenames = sorted(glob.glob("./Realnetworks/tags*_2015.gml"))
 Graphs = [gt.load_graph(File) for File in filenames]
+RunningI = 0
+LabeltoI = {}
+for Graph in Graphs:
+	for label in set(Graph.vp.label[vertex] for vertex in Graph.vertices())-set(LabeltoI.keys()):
+		LabeltoI[label] = RunningI
+		RunningI += 1
+Scores = [[] for i in LabeltoI.keys()]
 
+"""
 EperV = [gt.scalar_assortativity(Graph, "total") for Graph in Graphs]
 Values = [Thing[0] for Thing in EperV]
 plt.plot(Values)
@@ -17,6 +25,7 @@ plt.show()
 print sp.describe(Values)
 plt.hist(Values)
 plt.show()
+"""
 """
 Summe = 0
 for value in Values:
