@@ -1,7 +1,7 @@
 import NodeProbs as NoP
 import numpy as np
 import matplotlib.pyplot as plt
-"""
+#"""
 Mins = [[0 for i in xrange(101)] for j in xrange(101)]
 startend = [[0 for i in xrange(101)] for j in xrange(101)]
 
@@ -9,9 +9,9 @@ for i in xrange(len(Mins)):
     print float(i)/len(Mins)*100
     for j in xrange(len(Mins[i])):
         Ps = NoP.BuildProbas(a = i/10.0, b=j/10.0)
-        startend[i][j] = Ps[0]/Ps[-1]
-        if startend[i][j] > 100:
-            startend[i][j] = 100
+        startend[i][j] = np.log10(Ps[0]/Ps[-1])
+        #if startend[i][j] > 100:
+            #startend[i][j] = 100
         Mins[i][j] = NoP.FindMin(Ps)
         
 plt.subplot(121, label = "Location of the minima")
@@ -27,10 +27,11 @@ plt.plot([1,10],[0,9], color = "xkcd:black")
 plt.xlabel("b")
 plt.ylabel("a")
 #plt.axis([0,10,0,10])
-plt.colorbar(label = r"$\frac{P(r=1)}{P(r=100)}$", shrink=0.75, extend="max")
+plt.colorbar(label = r"$\log_{10}\left(\frac{P(r=1)}{P(r=100)}\right)$", shrink=0.75)
 plt.legend()
 plt.show()
 
+"""
 Minssmall = [[0 for i in xrange(101)] for j in xrange(101)]
 startendsmall = [[0 for i in xrange(101)] for j in xrange(101)]
 
@@ -60,6 +61,7 @@ plt.colorbar(label = r"$\frac{P(r=1)}{P(r=100)}$", shrink=0.75, extend="max")
 plt.legend()
 plt.show()
 """
+"""
 Minsbig = [[0 for i in xrange(101)] for j in xrange(101)]
 startendbig = [[0 for i in xrange(101)] for j in xrange(101)]
 
@@ -87,4 +89,4 @@ plt.ylabel("a")
 #plt.axis([0,10,0,10])
 plt.colorbar(label = r"$\frac{P(r=1)}{P(r=100)}$", shrink=0.75, extend="max")
 plt.show()
-
+"""
