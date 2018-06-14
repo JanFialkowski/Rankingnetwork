@@ -66,6 +66,7 @@ Firstscores /= Firstscores.sum()
 #plt.show()
 #"""
 
+"""
 #populating PointsforRank
 for i in xrange(len(Scores[0])-1):
 	for j in xrange(len(Ranks)):
@@ -78,24 +79,30 @@ print PointsforRank.sum()
 PointsforRank = PointsforRank.transpose()
 MeanProbs = np.array([sl.sum()/len(sl) for sl in PointsforRank]).astype("float")
 print MeanProbs.sum()
+Sigma = np.array([((sl-mean)**2).sum()/float(len(sl)) for sl,mean in zip(PointsforRank,MeanProbs)])
+Sigma = np.sqrt(Sigma)
 XValues = np.array([i+1 for i in xrange(len(MeanProbs))]).astype("float")
 #XValues /= len(XValues)
 #MeanProbs *= len(XValues)
-plt.scatter(XValues, MeanProbs)
+plt.errorbar(XValues, MeanProbs,yerr = Sigma, capsize = 3)
 plt.xlabel("Rank/max(Rank)")
 plt.ylabel("Average probability to gain a link")
 #plt.scatter([i+1 for i in xrange(len(PointsforRank))],[sl[0] for sl in PointsforRank], marker="+")
 #plt.show()
-plt.scatter(XValues,NoP.BuildProbas(Size=len(XValues),a=1.107,b=2.623))
-plt.show()
-
-
+#plt.plot(XValues,NoP.BuildProbas(Size=len(XValues),a=1.107,b=2.623))
+#plt.show()
 def fit(x,a,b):
 	y = NoP.BuildProbas(Size=len(XValues),a=a,b=b)
 	return y
 
-#Test = optimize.curve_fit(fit,XValues,MeanProbs)
-#print Test
+Test = optimize.curve_fit(fit,XValues,MeanProbs)
+plt.plot(XValues,NoP.BuildProbas(Size=len(XValues),a=Test[0][0],b=Test[0][1]))
+print Test
+Test = optimize.curve_fit(fit,XValues,MeanProbs, sigma = Sigma)
+plt.plot(XValues,NoP.BuildProbas(Size=len(XValues),a=Test[0][0],b=Test[0][1]))
+print Test
+plt.show()
+"""
 """
 #Code-snippet to calcute graph wide average weight per node
 Graphweightsum = []
@@ -125,19 +132,20 @@ plt.ylabel("Degree of the Node")
 plt.show()
 """
 
-"""
+#"""
 #Codeblock fuer die Assortivity
 EperV = [gt.scalar_assortativity(Graph, "total") for Graph in Graphs]
 Values = [Thing[0] for Thing in EperV]
-plt.plot(Values)
-plt.plot([1,52],[-0.12,-0.12])
-plt.xlabel("Week")
-plt.ylabel("Assortativity r")
+plt.plot(Values, label = "real dataset")
+plt.plot([1,52],[-0.12,-0.12], label = "mean assortativity")
+plt.xlabel("week")
+plt.ylabel("assortativity r")
+plt.legend()
 plt.show()
 print sp.describe(Values)
 plt.hist(Values)
 plt.show()
-"""
+#"""
 """
 Summe = 0
 for value in Values:
