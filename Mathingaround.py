@@ -14,16 +14,22 @@ def BuildProbas(Size=100, a=1, b=1):
     return Probs
                   
 
-def PlotProbs(Probs, Plotlabel = "", lw=1.5):
+def PlotProbs(Probs, Plotlabel = "", lw=1.5, marker=""):
     CumProbs = Probs
     Xvalues= [float(i+1)/len(CumProbs)*100 for i in xrange(len(CumProbs))]
     CumProbs *= float(len(CumProbs))/100.0
-    plt.plot(Xvalues,CumProbs, label = Plotlabel, lw=lw)
+    plt.plot(Xvalues,CumProbs, label = Plotlabel, lw=lw, marker=marker)
     return
 
 def FindMin(Probs):
     return Probs.argmin()+1
 
+def Integrated(x):
+	return (2*x/(1+x)+np.log((x+1)/x)-np.log(4))
+
+def Int2(x):
+	return(2*x+x*np.log(1+1/x)-np.log(1+x)-x*np.log(4))/(2-np.log(4))
+"""
 Probs = BuildProbas(100,1,1.6)
 PlotProbs(Probs, Plotlabel="a = 1 and b = 1.6")
 Probs = BuildProbas(100,2,2.6)
@@ -38,6 +44,7 @@ plt.ylabel(r"$w_{i}\cdot\left(\sum_{i=1}^{N}w_i\right)^{-1}$")
 plt.title(r"$w_{i}=\sum_{j=1}^{100}\frac{\vert i - j\vert^{a}}{(i + j)^{a + 0.6}}$", y=1.025)
 plt.legend()
 plt.show()
+"""
 """
 somelist = []
 for i in xrange(6):
@@ -54,18 +61,37 @@ plt.show()
 """
 #"""
 #rc("text", usetex=True)
-Probs = BuildProbas(100,1,1.6)
-PlotProbs(Probs, Plotlabel="N = 100 Ranks", lw=2.5)
-Probs = BuildProbas(10000,1,1.6)
-PlotProbs(Probs, Plotlabel = "N = 10000 Ranks")
-overx = np.array([1/(i+1)**0.6 for i in xrange(100)])
-overx /= overx.sum()
-plt.plot([i+1 for i in xrange(100)],overx, label=r"$x^{-0.6}$")
-plt.xlabel(r"$i\cdot \frac{100}{N}$")
+#Probs = BuildProbas(10,1,2).cumsum()
+#PlotProbs(Probs, Plotlabel="N=10 Ranks", marker=".")
+Probs1 = BuildProbas(10000,1,2)
+PlotProbs(Probs1, Plotlabel="N = 100 Ranks", lw=2.5, marker=".")
+ProbsI = Integrated(np.array([(i+1)/10000.0 for i in xrange(10000)]))
+ProbsI /= ProbsI.sum()
+PlotProbs(ProbsI, Plotlabel="Sampling approach")
+ProbsA = [Int2(1/10000.)]
+ProbsB = [Int2((i+2)/10000.)-Int2((i+1)/10000.) for i in xrange(10000-1)]
+ProbsI2 = np.array(ProbsB)
+PlotProbs(ProbsI2, Plotlabel = "Integrational approach")
+#Probs2 = BuildProbas(10000,1,2)
+#PlotProbs(Probs2, Plotlabel = "N = 10000 Ranks")
+
+#overx = np.array([1/(i+1)**0.6 for i in xrange(100)])
+#overx /= overx.sum()
+#plt.plot([i+1 for i in xrange(100)],overx, label=r"$x^{-0.6}$")
+plt.xlabel(r"$i\cdot\frac{100}{N}$")
 plt.ylabel(r"$w_{i}\cdot\left(\sum_{i=1}^{N}w_i\right)^{-1}\cdot\frac{N}{100}$")
-plt.title(r"$w_{i}=\sum_{j=1}^{N}\frac{\vert i - j\vert^1}{(i + j)^{1.6}}$", y=1.025)
+plt.title(r"$w_{i}=\sum_{j=1}^{N}\frac{\vert i - j\vert^1}{(i + j)^{2}}$", y=1.025)
 plt.legend()
 plt.show()
+
+Probs1 = Probs1.cumsum()
+PlotProbs(Probs1, Plotlabel = "Cumulative probability distribution", lw=2.5, marker = ".")
+ProbsI2 = ProbsI2.cumsum()
+PlotProbs(ProbsI2, Plotlabel = "Integrational approach")
+plt.show()
+#Diffs = np.array([Probs[i]-ProbsI2[i*len(ProbsI2)/len(Probs)] for i in xrange(len(Probs))])
+#print Diffs
+#print Diffs.sum()
 #"""
 """
 Iss = range(1001)
