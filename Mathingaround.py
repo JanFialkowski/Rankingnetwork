@@ -29,6 +29,10 @@ def Integrated(x):
 
 def Int2(x):
 	return(2*x+x*np.log(1+1/x)-np.log(1+x)-x*np.log(4))/(2-np.log(4))
+
+def func(x):
+	return -5./8*(x**0.4/0.5*(2./3-2**0.4)-5./3*((1-x)/((1+x)**0.6)-1))
+
 """
 Probs = BuildProbas(100,1,1.6)
 PlotProbs(Probs, Plotlabel="a = 1 and b = 1.6")
@@ -59,18 +63,23 @@ plt.xlabel("Rank i")
 plt.ylabel(r"$w_{i}\cdot\left(\sum_{i=1}^{100}w_i\right)^{-1}$")
 plt.show()
 """
-#"""
+"""
 #rc("text", usetex=True)
 #Probs = BuildProbas(10,1,2).cumsum()
 #PlotProbs(Probs, Plotlabel="N=10 Ranks", marker=".")
-Probs1 = BuildProbas(10000,1,2)
+Probs1 = BuildProbas(100,1,2)
 PlotProbs(Probs1, Plotlabel="N = 100 Ranks", lw=2.5, marker=".")
-ProbsI = Integrated(np.array([(i+1)/10000.0 for i in xrange(10000)]))
+ProbsI = Integrated(np.array([(i+1)/100.0 for i in xrange(100)]))
 ProbsI /= ProbsI.sum()
+r1 = (ProbsI - Probs1)
+r1 **= 2
 PlotProbs(ProbsI, Plotlabel="Sampling approach")
-ProbsA = [Int2(1/10000.)]
-ProbsB = [Int2((i+2)/10000.)-Int2((i+1)/10000.) for i in xrange(10000-1)]
-ProbsI2 = np.array(ProbsB)
+ProbsA = [Int2(1/100.)]
+ProbsB = [Int2((i+2)/100.)-Int2((i+1)/100.) for i in xrange(100-1)]
+ProbsA.extend(ProbsB)
+ProbsI2 = np.array(ProbsA)
+r2 = (Probs1- ProbsI2)
+r2 **= 2
 PlotProbs(ProbsI2, Plotlabel = "Integrational approach")
 #Probs2 = BuildProbas(10000,1,2)
 #PlotProbs(Probs2, Plotlabel = "N = 10000 Ranks")
@@ -92,7 +101,29 @@ plt.show()
 #Diffs = np.array([Probs[i]-ProbsI2[i*len(ProbsI2)/len(Probs)] for i in xrange(len(Probs))])
 #print Diffs
 #print Diffs.sum()
+"""
+
 #"""
+Probs1 = BuildProbas(10000,1,2.6)
+PlotProbs(Probs1, Plotlabel="N = 100 Ranks", lw=2.5, marker=".")
+ProbsA = [func(1/10000.)]
+ProbsB = [func((i+2)/10000.)-func((i+1)/10000.) for i in xrange(10000-1)]
+ProbsA.extend(ProbsB)
+ProbsI2 = np.array(ProbsA)
+r2 = (Probs1- ProbsI2)
+r2 **= 2
+PlotProbs(ProbsI2/ProbsI2.sum(), Plotlabel = "Integrational approach")
+plt.show()
+#"""
+
+#"""
+Probs1 = BuildProbas(1000,1,2.6)
+plt.plot(Probs1.cumsum(),lw=2.5)
+Probs2 = np.array([func((i+1)/1000.) for i in xrange(1000)])
+plt.plot(Probs2/Probs2[-1])
+plt.show()
+#"""
+
 """
 Iss = range(1001)
 MinRanks = []

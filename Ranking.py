@@ -147,7 +147,7 @@ def FindNode(Nodes):
 			index = i
 	return index
 	
-def Simulation(initial=5, timesteps=300, maximum=270):
+def Simulation(initial=5, timesteps=350, maximum=275):
 	Nodes = [Node(0) for i in xrange(initial-1)]
 	ProbM = [[0. for i in Nodes]for i in Nodes] #Vielleicht ndarray von Anfang an?
 	LinkList = []
@@ -159,7 +159,7 @@ def Simulation(initial=5, timesteps=300, maximum=270):
 	for t in xrange(timesteps):
 		print "Fortschritt: %g" %(float(t+1)/timesteps*100)
 		
-		#add a new node
+		#add a new node and increase size of ProbM by 1x1
 		#also adds the last starting node for t=0
 		if len(ProbM) < maximum:
 			for E in ProbM:
@@ -215,6 +215,8 @@ if __name__=="__main__":
 			else:
 				DifferentRanks.append(Node.Trajectory[t])
 	plt.plot(Dupes, label="number of duplicate ranks every timestep")
+	plt.xlabel("timestep")
+	plt.ylabel("number of duplicate scores")
 	plt.legend()
 	plt.show()
 	"""
@@ -244,17 +246,22 @@ if __name__=="__main__":
 	plt.ylabel("Time it takes to reach Rank one")
 	plt.show()
 	
-	plt.imshow(np.array(MakeAdjacency(LinkList, Nodes, 98, 100, 5,sortit=False, maximum=False)), cmap = "binary", interpolation = "none")
+	#plt.imshow(np.array(MakeAdjacency(LinkList, Nodes, 98, 100, 5,sortit=False, maximum=False)), cmap = "binary", interpolation = "none")
 	plt.show()
 	
-	Graph=gt.Graph(directed=False)
-	EdgeList = [Edge[1:] for Edge in LinkList if 299 <= Edge[0] < 300]
-	Graph.add_edge_list(EdgeList)
-	deg = Graph.degree_property_map("out")
-	deg.a = 4*(np.sqrt(deg.a)*0.5+0.4)+10
-	pos = gt.arf_layout(Graph)
-	gt.graph_draw(Graph, vertex_text=Graph.vertex_index, output = "99to100_15Links_11and26.png", vertex_size = deg, output_size = (1000,1000), vertex_text_position = -0.5, pos=pos)
-	Graph.save("Maybeitfits.graphml")
+	with open("./Simulatednetworks/LinkList","wb") as fp:
+		pickle.dump(LinkList,fp)
+	with open("./Simulatednetworks/Nodes","wb") as fp:
+		pickle.dump(Nodes,fp)
+	for i in xrange(52):
+		Graph=gt.Graph(directed=False)
+		EdgeList = [Edge[1:] for Edge in LinkList if 295+i <= Edge[0] < 295+i+1]
+		Graph.add_edge_list(EdgeList)
+		#deg = Graph.degree_property_map("out")
+		#deg.a = 4*(np.sqrt(deg.a)*0.5+0.4)+10
+		#pos = gt.arf_layout(Graph)
+		#gt.graph_draw(Graph, vertex_text=Graph.vertex_index, output = "99to100_15Links_11and26.png", vertex_size = deg, output_size = (1000,1000), vertex_text_position = -0.5, pos=pos)
+		Graph.save("./Simulatednetworks/SimulatedGraphWeek%d.graphml"%(i))
 
 	#with open("./TestingthepicklingList.txt", "wb") as fp:   #Pickling
 	#	pickle.dump(LinkList, fp)

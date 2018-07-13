@@ -31,6 +31,19 @@ for Graph in Graphs:
 print Scores
 
 """
+#code-snippet for the number of nodes per week
+Nodes = np.zeros((len(Graphs),))
+for i in xrange(len(Graphs)):
+	Nodes[i] = len(Graphs[i].get_vertices())
+plt.plot(Nodes,label = "real dataset")
+average = float(Nodes.sum())/len(Nodes)
+plt.plot([0,len(Nodes)-1],[average,average],label = "mean number of nodes = %.1f"%(average))
+plt.xlabel("week")
+plt.ylabel("number of nodes")
+plt.legend()
+plt.show()
+"""
+"""
 #calculate highest number of nodes in Graphs  UNUSED
 Maxnodes = 0
 for Graph in Graphs:
@@ -51,7 +64,8 @@ for i in xrange(len(Scores[0])):
 	for e in xrange(len(Ranks)):
 		Ranks[e].append(Rankings[e])
 
-#"""
+
+"""
 #Proof-of-concept 
 Firstrankings = np.array([sl[0] for sl in Ranks])
 Firstscores = np.array([sl[1] for sl in Scores])
@@ -64,7 +78,7 @@ Firstscores /= Firstscores.sum()
 #print Firstscores
 #plt.scatter(Firstrankings, Firstscores)
 #plt.show()
-#"""
+"""
 
 #"""
 #populating PointsforRank
@@ -101,7 +115,8 @@ Test = optimize.curve_fit(fit,XValues,MeanProbs)
 Test2 = optimize.curve_fit(fit2, XValues, MeanProbs)
 plt.plot(XValues,NoP.BuildProbas(Size=len(XValues),a=Test[0][0],b=Test[0][1]), "xkcd:orange", label = "best fit with a = %.1f and b = %.1f"%(Test[0][0], Test[0][1]))
 #plt.plot(XValues, XValues**Test2[0][0]*Test2[0][1], "green", label = r"$0.06\cdot x^{-0.65}$")
-print Test
+print Test[0]
+print np.sqrt(Test[1])
 print Test2
 plt.legend()
 plt.show()
@@ -112,16 +127,16 @@ Graphweightsum = []
 for i in xrange(len(Scores[0])):
 	Graphweightsum.append(0)
 	for Score in Scores:
-		Graphweightsum[i] += Score[i]/2 #Gradsumme = 2*Weightsumme
+		Graphweightsum[i] += Score[i]/2 #Gradsumme = 2*Linksumme
 	Graphweightsum[i] /= len(Graphs[i].get_vertices())
 plt.plot(Graphweightsum, label = "real dataset")
 average = 0
 for entry in Graphweightsum:
 	average += entry
 average /= len(Graphweightsum)
-plt.plot([0,len(Graphweightsum)-1],[average,average], label = "mean weight over time: %.1f"%(average))
+plt.plot([0,len(Graphweightsum)-1],[average,average], label = "mean number of links per node over time: %.1f"%(average))
 plt.xlabel("week")
-plt.ylabel("average weight per Node")
+plt.ylabel("average number of links per Node")
 plt.legend()
 plt.show()
 """
