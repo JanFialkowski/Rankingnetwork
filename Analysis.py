@@ -9,6 +9,7 @@ import NodeProbs as NoP
 filenames = sorted(glob.glob("./Realnetworks/tags*_2015.gml"))
 Graphs = [gt.load_graph(File) for File in filenames]
 
+"""
 #Codeblock fuer die Summe ueber die Gewichte eines Knoten
 RunningI = 0
 LabeltoI = {} #Dictionary, tells every hashtag-label its index I in my Lists
@@ -29,7 +30,34 @@ for Graph in Graphs:
 		if len(Score)<counting:
 			Score.append(0)
 print Scores
+"""
 
+
+histogram = [gt.corr_hist(Graph, "total", "total") for Graph in Graphs]
+longest = 0
+index = 0
+#print histogram[0]
+for gram in histogram:
+	length = len(gram[0])
+	if length>longest:
+		longest = len(gram[0])
+		index = histogram.index(gram)
+
+grammy = histogram[index]
+print len(grammy[0])
+print longest
+plt.imshow(grammy[0], origin = "lower")
+#del histogram[index]
+superhist = np.zeros_like(grammy[0])
+for hist in histogram:
+	superhist[:len(hist[0]),:len(hist[0])] += hist[0]
+specialhist = superhist.flatten()
+specialhist[specialhist.argmax()]=0
+print superhist
+superhist = specialhist.reshape(superhist.shape)
+plt.imshow(superhist)
+plt.colorbar()
+plt.show()
 """
 #code-snippet for the number of nodes per week
 Nodes = np.zeros((len(Graphs),))
@@ -52,6 +80,7 @@ for Graph in Graphs:
 		Maxnodes = Nodes
 """
 
+"""
 PointsforRank = [[] for i in xrange(len(LabeltoI))] 
 #should count the scores every rank gets in the following timestep
 #PointsforRank[i][j] Punkte die der i-te Rang zum j+1-ten Schritt gemacht hat
@@ -63,7 +92,7 @@ for i in xrange(len(Scores[0])):
 	Rankings = len(Rankpoints) - sp.rankdata(Rankpoints, method = "ordinal").astype("float") + 1
 	for e in xrange(len(Ranks)):
 		Ranks[e].append(Rankings[e])
-
+"""
 
 """
 #Proof-of-concept 
@@ -80,7 +109,7 @@ Firstscores /= Firstscores.sum()
 #plt.show()
 """
 
-#"""
+"""
 #populating PointsforRank
 for i in xrange(len(Scores[0])-1):
 	for j in xrange(len(Ranks)):
@@ -120,7 +149,7 @@ print np.sqrt(Test[1])
 print Test2
 plt.legend()
 plt.show()
-#"""
+"""
 """
 #Code-snippet to calcute graph wide average weight per node
 Graphweightsum = []
