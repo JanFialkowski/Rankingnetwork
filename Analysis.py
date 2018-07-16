@@ -8,7 +8,34 @@ import NodeProbs as NoP
 
 filenames = sorted(glob.glob("./Realnetworks/tags*_2015.gml"))
 Graphs = [gt.load_graph(File) for File in filenames]
+filenames = sorted(glob.glob("./Simulatednetworks/SimulatedGraphWeek*.graphml"))
+FakeGraphs = [gt.load_graph(File) for File in filenames]
+"""
+#Degree-Distributions
+for Graph in FakeGraphs:
+	gt.remove_parallel_edges(Graph)
+bins = np.geomspace(0.01,1, num = 30)
+print bins
+FakeDegrees = []
+for i in xrange(len(FakeGraphs)):
+	Dummy = FakeGraphs[i].get_out_degrees(FakeGraphs[i].get_vertices()[25+i:]).astype("float")
+	Dummy /= Dummy.max()
+	FakeDegrees.extend(Dummy)
+	#splicing to deal with the dead nodes
+	#FakeDegrees[i]/=FakeDegrees[i].max()
+RealDegrees = []
+for i in xrange(len(Graphs)):
+	dummy = Graphs[i].get_out_degrees(Graphs[i].get_vertices()).astype("float")
+	dummy /= dummy.max()
+	RealDegrees.extend(dummy)
+	#RealDegrees[i]/=RealDegrees[i].max()
+#print RealDegrees
+#print FakeDegrees
 
+plt.hist([FakeDegrees, RealDegrees], bins = bins, log = True)
+plt.xscale("log")
+plt.show()
+"""
 """
 #Codeblock fuer die Summe ueber die Gewichte eines Knoten
 RunningI = 0
@@ -32,7 +59,7 @@ for Graph in Graphs:
 print Scores
 """
 
-
+"""
 histogram = [gt.corr_hist(Graph, "total", "total") for Graph in Graphs]
 longest = 0
 index = 0
@@ -58,6 +85,7 @@ superhist = specialhist.reshape(superhist.shape)
 plt.imshow(superhist)
 plt.colorbar()
 plt.show()
+"""
 """
 #code-snippet for the number of nodes per week
 Nodes = np.zeros((len(Graphs),))
@@ -179,20 +207,23 @@ plt.ylabel("Degree of the Node")
 plt.show()
 """
 
-"""
+#"""
 #Codeblock fuer die Assortivity
-EperV = [gt.scalar_assortativity(Graph, "total") for Graph in Graphs]
+for Graph in FakeGraphs:
+	gt.remove_parallel_edges(Graph)
+EperV = [gt.scalar_assortativity(Graph, "total") for Graph in FakeGraphs]
 Values = [Thing[0] for Thing in EperV]
-plt.plot(Values, label = "real dataset")
-plt.plot([1,52],[-0.12,-0.12], label = "mean assortativity: -0.12")
+mean = sp.describe(Values)[2]
+print np.sqrt(sp.describe(Values)[3])
+plt.plot(Values, label = "empirical dataset")
+plt.plot([0,51],[mean,mean], label = "mean assortativity: %.3f"%(mean))
 plt.xlabel("week")
 plt.ylabel("assortativity r")
 plt.legend()
 plt.show()
-print sp.describe(Values)
-plt.hist(Values)
+#plt.hist(Values)
 plt.show()
-"""
+#"""
 """
 Summe = 0
 for value in Values:
