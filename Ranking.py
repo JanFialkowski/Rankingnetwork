@@ -68,7 +68,7 @@ def MakeAdjacency(LinkList, Nodes, t0, t1, InitialNodes, sortit=False, maximum =
 				AMatrix[Secondlink][Firstlink]+=1
 	return AMatrix
 
-def UpdateMatrix(Nodes, Matrix, a = 1.1, b = 2.6):
+def UpdateMatrix(Nodes, Matrix, a = 1., b = 1.6):
 	#temporary conversion to an array to make later normalizing easier
 	ProbM = np.array(Matrix)
 	#iterating over the array and calculating the corresponding weights
@@ -147,7 +147,7 @@ def FindNode(Nodes):
 			index = i
 	return index
 	
-def Simulation(initial=5, timesteps=350, maximum=275):
+def Simulation(initial=5, timesteps=7000, maximum=150):
 	Nodes = [Node(0) for i in xrange(initial-1)]
 	ProbM = [[0. for i in Nodes]for i in Nodes] #Vielleicht ndarray von Anfang an?
 	LinkList = []
@@ -182,7 +182,7 @@ def Simulation(initial=5, timesteps=350, maximum=275):
 		
 		#roll the links according to the probability matrix
 		t1=time.clock()
-		AddList = RollingLinks(ProbM,t,15*len(Nodes))
+		AddList = RollingLinks(ProbM,t,7*len(Nodes))
 		for L in AddList:
 			Nodes[L[1]].ScoreTrajectory[-1]+=1
 			Nodes[L[2]].ScoreTrajectory[-1]+=1
@@ -220,6 +220,10 @@ if __name__=="__main__":
 	plt.legend()
 	plt.show()
 	"""
+	with open("./Simulatednetworks/LongLinkList7k","wb") as fp:
+		pickle.dump(LinkList,fp)
+	with open("./Simulatednetworks/LongNodes7k","wb") as fp:
+		pickle.dump(Nodes,fp)	
 	RankoneTimes = []
 	TimetoOnes = []
 	plt.show()
@@ -234,25 +238,23 @@ if __name__=="__main__":
 	plt.xlabel("Time")
 	#plt.ylim(0,20)
 	plt.ylabel("Rank")
-	plt.legend()
+	#plt.legend()
 	plt.show()
 	for Thing in Nodes:
 		plt.plot(Thing.ScoreTrajectory)
 	plt.show()
-	plt.hist(RankoneTimes, label = "Time spent at Rank one")
+	plt.hist(RankoneTimes, label = "Time spent at Rank one", bins = 20)
 	plt.ylabel("Time spent at Rank one")
 	plt.show()
-	plt.hist(TimetoOnes, label = "Time it takes to reach Rank one")
+	plt.hist(TimetoOnes, label = "Time it takes to reach Rank one", bins = 20)
 	plt.ylabel("Time it takes to reach Rank one")
 	plt.show()
 	
 	#plt.imshow(np.array(MakeAdjacency(LinkList, Nodes, 98, 100, 5,sortit=False, maximum=False)), cmap = "binary", interpolation = "none")
 	plt.show()
 	
-	with open("./Simulatednetworks/LinkList","wb") as fp:
-		pickle.dump(LinkList,fp)
-	with open("./Simulatednetworks/Nodes","wb") as fp:
-		pickle.dump(Nodes,fp)
+
+"""
 	for i in xrange(52):
 		Graph=gt.Graph(directed=False)
 		EdgeList = [Edge[1:] for Edge in LinkList if 295+i <= Edge[0] < 295+i+1]
@@ -262,8 +264,5 @@ if __name__=="__main__":
 		#pos = gt.arf_layout(Graph)
 		#gt.graph_draw(Graph, vertex_text=Graph.vertex_index, output = "99to100_15Links_11and26.png", vertex_size = deg, output_size = (1000,1000), vertex_text_position = -0.5, pos=pos)
 		Graph.save("./Simulatednetworks/SimulatedGraphWeek%d.graphml"%(i))
+"""
 
-	#with open("./TestingthepicklingList.txt", "wb") as fp:   #Pickling
-	#	pickle.dump(LinkList, fp)
-	#with open("./TestingthepicklingNodes.txt", "wb") as fp:
-		#pickle.dump(Nodes, fp)
