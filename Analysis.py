@@ -10,7 +10,7 @@ filenames = sorted(glob.glob("./Realnetworks/tags*_2015.gml"))
 Graphs = [gt.load_graph(File) for File in filenames]
 filenames = sorted(glob.glob("./Simulatednetworks/SimulatedGraphWeek*.graphml"))
 FakeGraphs = [gt.load_graph(File) for File in filenames]
-"""
+#"""
 #Degree-Distributions
 for Graph in FakeGraphs:
 	gt.remove_parallel_edges(Graph)
@@ -19,23 +19,28 @@ print bins
 FakeDegrees = []
 for i in xrange(len(FakeGraphs)):
 	Dummy = FakeGraphs[i].get_out_degrees(FakeGraphs[i].get_vertices()[25+i:]).astype("float")
-	Dummy /= Dummy.max()
+	#Dummy /= Dummy.max()
 	FakeDegrees.extend(Dummy)
 	#splicing to deal with the dead nodes
 	#FakeDegrees[i]/=FakeDegrees[i].max()
 RealDegrees = []
 for i in xrange(len(Graphs)):
 	dummy = Graphs[i].get_out_degrees(Graphs[i].get_vertices()).astype("float")
-	dummy /= dummy.max()
+	#dummy /= dummy.max()
 	RealDegrees.extend(dummy)
 	#RealDegrees[i]/=RealDegrees[i].max()
-#print RealDegrees
+for i in xrange(len(RealDegrees)):
+	RealDegrees[i]/=max(RealDegrees)
+for i in xrange(len(FakeDegrees)):
+	FakeDegrees[i]/=max(FakeDegrees)
 #print FakeDegrees
 
 plt.hist([FakeDegrees, RealDegrees], bins = bins, log = True)
 plt.xscale("log")
+plt.xlabel(r"$k/k_{max}$")
 plt.show()
-"""
+#"""
+
 """
 #Codeblock fuer die Summe ueber die Gewichte eines Knoten
 RunningI = 0
@@ -207,7 +212,7 @@ plt.ylabel("Degree of the Node")
 plt.show()
 """
 
-#"""
+"""
 #Codeblock fuer die Assortivity
 for Graph in FakeGraphs:
 	gt.remove_parallel_edges(Graph)
@@ -223,7 +228,7 @@ plt.legend()
 plt.show()
 #plt.hist(Values)
 plt.show()
-#"""
+"""
 """
 Summe = 0
 for value in Values:
