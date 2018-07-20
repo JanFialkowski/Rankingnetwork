@@ -14,7 +14,7 @@ def BuildProbas(Size=100, a=1, b=1):
 
 def PlotProbs(Probs, Plotlabel = ""):
     CumProbs = Probs
-    Xvalues= [float(i)/len(CumProbs)*100 for i in xrange(len(CumProbs))]
+    Xvalues= [float(i+1)/len(CumProbs)*100 for i in xrange(len(CumProbs))]
     CumProbs *= float(len(CumProbs))/100.0
     plt.plot(Xvalues,CumProbs, label = Plotlabel)
     return
